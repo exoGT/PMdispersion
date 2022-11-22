@@ -6,6 +6,24 @@
 
 using namespace std;
 
+bool isValid(double value, int coord, float off, float dep, int norm){
+    if (coord == norm){
+        if (value >= off - dep && value <= off + dep){
+            return true;
+        }
+        else {return false;}
+    }
+    else {return true;} 
+}
+
+string writeOutput(bool valid, string input){
+    // if (valid == true) {
+    //     return input + "\n";
+    // }
+    // else {return "";}
+    return input;
+}
+
 int main()
 {
     ofstream output("post/positions.txt");
@@ -19,58 +37,42 @@ int main()
     if(dataFlux)
     { 
         string line;
+        string tempLine;
         
-        float offset = 0.02; // relative to X,Y or Z = 0
-        float depth = 0.001; // thickness of the clip
+        float offset = 0.026; // relative to X,Y or Z = 0
+        float depth = 0.00001; // thickness of the clip
         int normal = 1; // 1 = X, 2 = Y, 3 =Z 
 
         int counter = 0; //for testing purposes only
-        int limit = 400000;
+        int limit = 1000;
         int coordCounter = 0;
+
+        bool state;
 
         while(getline(dataFlux, line) && counter < limit) // set
         {
             if (line.find("(") == 0){
+                // Enter that loop if line starts with an open parenthesis
                 string str = line;
+
+                tempLine == "";
+                state = true;
                 coordCounter = 0;
                 
-                while (regex_search(str, m, e)) {                   
-                    if (coordCounter < 3) {
-                        switch (normal)
-                        {
-                            case 1: // if clip normal to X
-                                if (coordCounter == 1 && std::stof(m[0]) >= offset - depth && std::stof(m[0]) <= offset + depth ){
-                                    output << m[0] << " ";
-                                    break;
-                                }
-                                else if(coordCounter != 1 || std::stof(m[0]) < offset - depth || std::stof(m[0]) > offset + depth){
-                                    break;
-                                }
-                            case 2: // if clip normal to Y
-                                if (coordCounter == 2 && std::stof(m[0]) >= offset - depth && std::stof(m[0]) <= offset + depth ){
-                                    output << m[0] << " ";
-                                    break;
-                                }
-                                else if(coordCounter != 2 || std::stof(m[0]) < offset - depth || std::stof(m[0]) > offset + depth){
-                                    break;
-                                }
-                            case 3: // if clip normal to Z
-                                if (coordCounter == 3 && std::stof(m[0]) >= offset - depth && std::stof(m[0]) <= offset + depth ){
-                                    output << m[0] << " ";
-                                    break;
-                                }
-                                else if(coordCounter != 3 || std::stof(m[0]) < offset - depth || std::stof(m[0]) > offset + depth){
-                                    break;
-                                }
-                        }
-                        //cout << std::stof(m[0]) << " ";
-                        //output << m[0] << " ";
+                while (regex_search(str, m, e) && coordCounter < 3) {                   
+                    state = isValid(std::stod(m[0]), coordCounter, offset, depth, normal); 
+                                      
+                    if (state) {  
+                        cout << "here"; 
+                        tempLine += m[0];
+                        tempLine += " ";                  
                     }
+                    else {break;}
+
                     str = m.suffix();
                     coordCounter++;             
                 }
-                std::cout << std::endl;
-                output << endl;
+                cout << writeOutput(state, tempLine) << endl;
             }
             counter++;
         }
