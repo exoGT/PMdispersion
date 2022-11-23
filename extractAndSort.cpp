@@ -6,77 +6,50 @@
 
 using namespace std;
 
-bool isValid(double value, int coord, float off, float dep, int norm){
-    if (coord == norm){
-        if (value >= off - dep && value <= off + dep){
-            return true;
-        }
-        else {return false;}
-    }
-    else {return true;} 
-}
-
-string writeOutput(bool valid, string input){
-    // if (valid == true) {
-    //     return input + "\n";
-    // }
-    // else {return "";}
-    return input;
-}
-
 int main()
 {
-    ofstream output("post/positions.txt");
-    ifstream dataFlux("U_data/positions");
-    
-    output << "x-coord y-coord z-coord";
+    ofstream outputRaw("post/rawPositions.txt");
+    ifstream dataFlux("U_data/positions");  
+
+    outputRaw << "X-coord Y-coord Z-coord";   
 
     smatch m;
     regex e ("[+-]?([0-9]*[.])?[0-9]+");
 
+    vector<vector<double>> data;
+
     if(dataFlux)
     { 
-        string line;
-        string tempLine;
-        
-        float offset = 0.026; // relative to X,Y or Z = 0
-        float depth = 0.00001; // thickness of the clip
-        int normal = 1; // 1 = X, 2 = Y, 3 =Z 
+        cout << "Program has detected data \nData will be extracted..." << endl;
+        string line;       
 
         int counter = 0; //for testing purposes only
-        int limit = 1000;
         int coordCounter = 0;
 
-        bool state;
-
-        while(getline(dataFlux, line) && counter < limit) // set
+        while(getline(dataFlux, line)) // set
         {
             if (line.find("(") == 0){
-                // Enter that loop if line starts with an open parenthesis
                 string str = line;
+                coordCounter = 0;  
+                data.push_back(vector<double>());
 
-                tempLine == "";
-                state = true;
-                coordCounter = 0;
-                
-                while (regex_search(str, m, e) && coordCounter < 3) {                   
-                    state = isValid(std::stod(m[0]), coordCounter, offset, depth, normal); 
-                                      
-                    if (state) {  
-                        cout << "here"; 
-                        tempLine += m[0];
-                        tempLine += " ";                  
-                    }
-                    else {break;}
-
+                while (regex_search(str, m, e) && coordCounter < 3) {
+                    outputRaw << std::stod(m[0]) << " ";
+                    data[counter].push_back(std::stod(m[0]));
                     str = m.suffix();
                     coordCounter++;             
-                }
-                cout << writeOutput(state, tempLine) << endl;
+                }   
+
+                outputRaw << endl;
+                counter++;             
             }
-            counter++;
         }
-        
+
+        data.erase(data.begin());
+
+        cout << endl << "Program has retrieved " << counter << " data points" << endl;
+        cout << "Data size: " << data.size() << "x" << data[1].size() << endl;
+        cout << endl << "Data preview (row #1): " << data[0][0] << " " << data[0][1] << " " << data[0][2];
     }
     else 
         cout << "ERROR: Unable to open read-mode." << endl;
