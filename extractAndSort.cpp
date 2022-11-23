@@ -6,11 +6,31 @@
 
 using namespace std;
 
+void outputData(vector<vector<double>> input, vector<vector<double>> output, int normal, double offset, double depth)
+{   
+    ofstream outputFiltered("post/filteredPositions.txt");
+    int filteredCounter = 0;
+
+    cout << "Program will start filtering your data based on your selected settings..." << endl;
+    
+    for(int row = 0; row < input.size(); row++){
+        if(input[row][normal] < offset + depth && input[row][normal] > offset - depth){                
+            output.push_back(vector<double>());                        
+            for(int col = 0; col < 3; col++){                    
+                output[filteredCounter].push_back(input[row][col]);
+            }                
+            outputFiltered << output[filteredCounter][0] << " " << output[filteredCounter][1] << " " << output[filteredCounter][2] << endl;
+            filteredCounter++;            
+        }
+    }
+
+    cout << "Program has successfully filtered " << filteredCounter << " data points.";
+}
+
 int main()
 {
     // Flux opening in W/R mode
-    ofstream outputRaw("post/rawPositions.txt");
-    ofstream outputFiltered("post/filteredPositions.txt");
+    ofstream outputRaw("post/rawPositions.txt");    
     ifstream dataFlux("U_data/positions");  
 
     // Headers in the raw positions file
@@ -67,28 +87,33 @@ int main()
         cout << "Data preview (row #1): " << data[0][0] << " " << data[0][1] << " " << data[0][2] << endl;        
 
         // Filtering function
-        char choice; 
+        char choice;
+        int plane;
+        double position;
+        double thickness;
 
         while(choice != 'N' && choice != 'Y'){
             cout << endl << "Do you want to proceed with spatial filtering? [Y/N] ";
             cin >> choice;
         }
 
+        cout << "Choose the corresponding parameters: " << endl;
+        
+        while(plane != 0 && plane != 1 && plane != 2){
+            cout << "   Plane [X = 0 | Y = 1 | Z = 2]: ";
+            cin >> plane;
+        }
+        
+        cout << "   Offset in mm: ";
+        cin >> position;
+        cout << "   Probe thickness in mm: ";
+        cin >> thickness;
+        cout << endl;
+
         switch(choice)
         {
-            case 'Y':
-                cout << "Program will start filtering your data based on your selected settings..." << endl;
-                for(int row = 0; row < data.size(); row++){
-                    if(data[row][0] < 0.0005 && data[row][0] > 0.00045){                
-                        filteredData.push_back(vector<double>());                        
-                        for(int col = 0; col < 3; col++){                    
-                            filteredData[filteredCounter].push_back(data[row][col]);
-                        }                
-                        outputFiltered << filteredData[filteredCounter][0] << " " << filteredData[filteredCounter][1] << " " << filteredData[filteredCounter][2] << endl;
-                        filteredCounter++;            
-                    }
-                }
-                cout << "Program has successfully filtered " << filteredCounter << " data points.";
+            case 'Y':                
+                outputData(data, filteredData, plane, position, thickness);
                 break;
 
             case 'N':
